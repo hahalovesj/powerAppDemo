@@ -25,21 +25,59 @@ def swipe_left():
     y1 = get_size()[1]/2
     x = get_size()[0]/10*1
     driver.swipe(x1,y1,x,y1)
+    time.sleep(5)
 
-#向上边滑动   
+#向上边滑动，根据元素高度   
 def swipe_up():
     x1 = get_size()[0]/2
-    y1 = get_size()[1]/10*9
-    y2 = get_size()[1]/10*1
-    driver.swipe(x1,y1,x1,y2,3000)  
+    y1 = 928 #get_size()[1]/10*5
+    y2 = 437.5 #get_size()[1]/10*1
+    driver.swipe(x1,y1,x1,y2,5000)  
+    time.sleep(2)
 
 #滚动,scroll() 与swipe()的区别，swipe是可以根据自己需要设置滑动的距离，而scroll是根据页面中两个元素位置距离进行滑动。
 def scroll_page(list):
-	#获取两个元素，将页面向上滑动
+	#获取倒数第一个和倒数第二个元素，将页面向上滑动
 	time.sleep(5)
-	stop_element=list[0]
-	start_element=list[3]
-	driver.scroll(start_element,stop_element,3000)  
+	stop_element=list[-3]
+	start_element=list[-2]
+	driver.scroll(start_element,stop_element,5000)  
+
+#获取新房详情信息
+def getOnehandInfo():
+    #进入第一个新房详情
+    list[0].click()
+    time.sleep(5)
+    #楼盘名称
+    resblockname = driver.find_element_by_id("com.lizihang.powerapp:id/resblockName").get_attribute("text")
+    #楼盘价格
+    totalPriceRange = driver.find_element_by_id("com.lizihang.powerapp:id/totalPriceRange").text
+    print(resblockname)
+    print(totalPriceRange)
+    #爬取数据保存到文件，a+附加读写方式打开，若文件不存在，创建。
+    fileOb = open('/Volumes/SD/workSpace/vsCodeWorkplace/appiumStudy/powerapp.txt','a+',encoding='utf-8')     
+    fileOb.write(resblockname+totalPriceRange+"\n")
+    time.sleep(5)
+    #退出详情
+    driver.find_element_by_id("com.lizihang.powerapp:id/iv_title_bar_left_icon").click()
+    time.sleep(5)
+
+#是否滑动到页面底部
+def isPageEnd(list):
+    # 获取滑动前页面元素
+    before_swipe = driver.page_source
+    # 滑动
+    swipe_up()
+    # 获取滑动后页面元素
+    after_swipe = driver.page_source
+    # 对比滑动前后的页面元素
+    # 若滑动前后页面元素完全相同，则滑动失败，已达页尾
+    if before_swipe == after_swipe:
+        return False
+    # 若滑动前后页面元素不同，则滑动成功，继续滑动
+    else:
+        return True
+
 
 #TODO https://www.jianshu.com/p/9b6d851a766a
 def scrollToElement(): #使用scrollIntoView方法实现滚动到指定控件元素
@@ -52,25 +90,18 @@ driver = get_driver()
 #进入新房
 driver.find_element_by_id("com.lizihang.powerapp:id/tv_onehand").click()
 time.sleep(5)
-#进入第一个新房详情
+#获取新房列表
 list = driver.find_elements_by_id("com.lizihang.powerapp:id/oneLl")
-scroll_page(list)
-#print(list[0].get_attribute("text"))
-#list[0].click()
 time.sleep(5)
-#楼盘名称
-#resblockname = driver.find_element_by_id("com.lizihang.powerapp:id/resblockName")
-#楼盘价格
-#totalPriceRange = driver.find_element_by_id("com.lizihang.powerapp:id/totalPriceRange")
-#print(resblockname.get_attribute("text"))
-#print(totalPriceRange.text)
-#time.sleep(5)
-#退出详情
-#driver.find_element_by_id("com.lizihang.powerapp:id/iv_title_bar_left_icon").click()
-#time.sleep(5)
-#新房列表滑动
-#swipe_up()
-#time.sleep(5)
+#print(list[0].get_attribute("text"))
+
+#判断是否页面底部
+for i in range(10):
+    #循环进入新房详情，并爬取信息
+    getOnehandInfo()
+    #scroll_page(list) #按元素位置滑动，因为高度不统一，时长增加后会出现定位不到元素 
+    swipe_up()#按固定高度滑动
+else:
+    driver.quit()
 
 
-driver.quit()
